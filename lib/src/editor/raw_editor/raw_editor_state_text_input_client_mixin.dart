@@ -80,16 +80,17 @@ mixin RawEditorStateTextInputClientMixin on EditorState
       _textInputConnection = TextInput.attach(
         this,
         TextInputConfiguration(
-          inputType: TextInputType.multiline,
-          readOnly: widget.config.readOnly,
-          inputAction: widget.config.textInputAction,
-          enableSuggestions: !widget.config.readOnly,
-          keyboardAppearance: createKeyboardAppearance(),
-          textCapitalization: widget.config.textCapitalization,
-          allowedMimeTypes: widget.config.contentInsertionConfiguration == null
-              ? const <String>[]
-              : widget.config.contentInsertionConfiguration!.allowedMimeTypes,
-        ),
+            inputType: TextInputType.multiline,
+            readOnly: widget.config.readOnly,
+            inputAction: widget.config.textInputAction,
+            enableSuggestions: !widget.config.readOnly,
+            keyboardAppearance: createKeyboardAppearance(),
+            textCapitalization: widget.config.textCapitalization,
+            allowedMimeTypes: widget.config.contentInsertionConfiguration ==
+                    null
+                ? const <String>[]
+                : widget.config.contentInsertionConfiguration!.allowedMimeTypes,
+            viewId: View.of(context).viewId),
       );
 
       _updateSizeAndTransform();
