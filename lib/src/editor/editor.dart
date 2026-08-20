@@ -199,6 +199,9 @@ class QuillEditorState extends State<QuillEditor>
   /// {@macro drag_offset_notifier}
   final dragOffsetNotifier = isMobileApp ? ValueNotifier<Offset?>(null) : null;
 
+  /// Owned FocusNode for the web KeyboardListener (must not be created in build).
+  late final FocusNode _webKeyboardFocusNode;
+
   @override
   void initState() {
     super.initState();
@@ -207,6 +210,22 @@ class QuillEditorState extends State<QuillEditor>
         _QuillEditorSelectionGestureDetectorBuilder(
       this,
       config.detectWordBoundary,
+    );
+
+    // This node exists ONLY to observe key events for the issue #304
+    // workaround below. It must never become a focus target: it sits directly
+    // above the editor's own focus node, so while it was focusable+traversable
+    // an arrow key made Flutter's directional traversal move focus from the
+    // editor onto THIS node -- the editor lost focus and the caret went dead.
+    //
+    // canRequestFocus/skipTraversal keep it out of traversal while leaving it
+    // in the focus CHAIN, so onKeyEvent still fires and the #304 interception
+    // is preserved. This is exactly how Flutter's own Shortcuts widget does it.
+    _webKeyboardFocusNode = FocusNode(
+      debugLabel: 'QuillEditor.webKeyboardListener',
+      skipTraversal: true,
+      canRequestFocus: false,
+      onKeyEvent: (node, event) => KeyEventResult.skipRemainingHandlers,
     );
 
     final focusNode = widget.focusNode;
@@ -221,6 +240,13 @@ class QuillEditorState extends State<QuillEditor>
         _editorKey.currentState?.hideToolbar();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _webKeyboardFocusNode.dispose();
+    dragOffsetNotifier?.dispose();
+    super.dispose();
   }
 
   @override
@@ -347,9 +373,7 @@ class QuillEditorState extends State<QuillEditor>
       // See issue https://github.com/singerdmx/flutter-quill/issues/304
       return KeyboardListener(
         onKeyEvent: (_) {},
-        focusNode: FocusNode(
-          onKeyEvent: (node, event) => KeyEventResult.skipRemainingHandlers,
-        ),
+        focusNode: _webKeyboardFocusNode,
         child: editor,
       );
     }
