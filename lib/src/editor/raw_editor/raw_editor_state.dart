@@ -1421,4 +1421,9 @@ class QuillRawEditorState extends EditorState
 
   @override
   bool get shareEnabled => false;
+
+  @override
+  bool onFocusReceived() {
+    return false;
+  }
 }
