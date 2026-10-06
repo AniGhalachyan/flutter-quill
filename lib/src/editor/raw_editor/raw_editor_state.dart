@@ -1053,6 +1053,11 @@ class QuillRawEditorState extends EditorState
   }
 
   void _didChangeTextEditingValue([bool ignoreFocus = false]) {
+    // Must run on web too, otherwise a stale vertical caret run survives
+    // edits and arrow up/down jumps several lines.
+    _shortcutActionsManager.adjacentLineAction
+        .stopCurrentVerticalRunIfSelectionChanges();
+
     if (kIsWeb) {
       _onChangeTextEditingValue(ignoreFocus);
       if (!ignoreFocus) {
@@ -1071,9 +1076,6 @@ class QuillRawEditorState extends EditorState
         _markNeedsBuild();
       }
     }
-
-    _shortcutActionsManager.adjacentLineAction
-        .stopCurrentVerticalRunIfSelectionChanges();
   }
 
   late double _lastBottomViewInset;
